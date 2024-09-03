@@ -3,10 +3,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
 import pandas as pd
 import time
+import progressbar
 
 options = Options()
 options.add_experimental_option('detach', True)
-options.add_argument("headless")
+# options.add_argument("headless")
 driver = webdriver.Edge(options=options)
 
 def get_shadow_root(element):
@@ -32,22 +33,31 @@ def marketplace_reviews():
         )
     pd.DataFrame(res).to_csv('./res/facebook_marketplace.csv')
 
-def marketplace_reddit():
+def marketplace_reddit(n: int):
     driver.get('https://www.reddit.com/r/FacebookMarketplace/?f=flair_name%3A%22Discussion%22')
 
     posts = []
+    print("STEP 1: Scraping posts urls...")
+    bar = progressbar.ProgressBar(maxval=n).start()
     while True:
         newPosts = driver.find_elements(By.TAG_NAME, 'shreddit-post')
         for new in newPosts:
-            link = new.find_element(By.CLASS_NAME, 'absolute.inset-0').get_attribute('href')
+            try:
+                link = new.get_attribute("content-href")
+            except:
+                continue
             if link not in posts:
                 posts.append(link)
-        if len(posts) > 2000:
+        if len(posts) >= n:
             break
+        bar.update(len(posts))
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-
+    bar.finish()
     results = []
-    for post in posts:
+    print("STEP 2: Scraping posts content...")
+    bar = progressbar.ProgressBar(maxval=len(posts)).start()
+    for i, post in enumerate(posts):
+        bar.update(i)
         driver.get(post)
         mainContent = driver.find_element(By.ID, "main-content")
         title = mainContent.find_element(By.TAG_NAME, 'shreddit-title').get_attribute('title')
@@ -63,16 +73,24 @@ def marketplace_reddit():
         for p in paragraphs:
             text += p.get_attribute('innerText') + "\n"
         shadowRoot = get_shadow_root(content)
-        upvote = int(shadowRoot.find_element(By.CSS_SELECTOR, 'div.flex.flex-row.items-center.flex-nowrap.overflow-hidden.justify-start.h-2xl.mt-md.px-md.xs\:px-0 > span > span > span > faceplate-number').get_attribute('innerText'))
-        
+        upvote = shadowRoot.find_element(By.CSS_SELECTOR, 'div.flex.flex-row.items-center.flex-nowrap.overflow-hidden.justify-start.h-2xl.mt-md.px-md.xs\:px-0 > span > span > span > faceplate-number').get_attribute('number')
+        date = content.get_attribute('created-timestamp')
         results.append({
+            'date': date,
             'title': title,
             'content': text,
-            'upvote': upvote,
+            'upvote': int(upvote),
         })
+    bar.finish()
+    print("STEP 3: Saving results...")
     pd.DataFrame(results).to_csv('./res/facebook_marketplace_reddit.csv')
     driver.close()
+    print("DONE")
 
-marketplace_reddit()
+def ebay_reviews():
+    pass
     
+
+marketplace_reddit(250)
+
 
