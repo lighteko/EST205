@@ -52,7 +52,6 @@ def marketplace_reddit():
         mainContent = driver.find_element(By.ID, "main-content")
         title = mainContent.find_element(By.TAG_NAME, 'shreddit-title').get_attribute('title')
         try:
-            time.sleep(0.5)
             readMore = mainContent.find_element(By.XPATH, '//*[contains(@id, "read-more-button")]')
             if (readMore != None):
                 readMore.click()
