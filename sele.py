@@ -6,7 +6,7 @@ import time
 
 options = Options()
 options.add_experimental_option('detach', True)
-# options.add_argument("headless")
+options.add_argument("headless")
 driver = webdriver.Edge(options=options)
 
 def get_shadow_root(element):
@@ -42,7 +42,7 @@ def marketplace_reddit():
             link = new.find_element(By.CLASS_NAME, 'absolute.inset-0').get_attribute('href')
             if link not in posts:
                 posts.append(link)
-        if len(posts) > 20:
+        if len(posts) > 2000:
             break
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
@@ -51,18 +51,28 @@ def marketplace_reddit():
         driver.get(post)
         mainContent = driver.find_element(By.ID, "main-content")
         title = mainContent.find_element(By.TAG_NAME, 'shreddit-title').get_attribute('title')
+        try:
+            time.sleep(0.5)
+            readMore = mainContent.find_element(By.XPATH, '//*[contains(@id, "read-more-button")]')
+            if (readMore != None):
+                readMore.click()
+        except:
+            pass
         content = mainContent.find_element(By.TAG_NAME, "shreddit-post")
         paragraphs = content.find_element(By.CLASS_NAME, "md.text-14").find_elements(By.TAG_NAME, 'p')
         text = ""
         for p in paragraphs:
             text += p.get_attribute('innerText') + "\n"
-        upvote = int(get_shadow_root(content).find_element(By.TAG_NAME, 'faceplate-number').get_attribute('innerText'))
+        shadowRoot = get_shadow_root(content)
+        upvote = int(shadowRoot.find_element(By.CSS_SELECTOR, 'div.flex.flex-row.items-center.flex-nowrap.overflow-hidden.justify-start.h-2xl.mt-md.px-md.xs\:px-0 > span > span > span > faceplate-number').get_attribute('innerText'))
+        
         results.append({
             'title': title,
             'content': text,
             'upvote': upvote,
         })
-    print(results[:1])
+    pd.DataFrame(results).to_csv('./res/facebook_marketplace_reddit.csv')
+    driver.close()
 
 marketplace_reddit()
     
