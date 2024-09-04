@@ -2,7 +2,7 @@ from crawler import Crawler
 
 def main():
     print("""
-          WELCOME TO THE CRAWLER V1.0
+          WELCOME TO CRAWLER V1.0
             Please select the mode you would like to use:
             0: Google Play Store
             1: Apple App Store

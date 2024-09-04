@@ -21,7 +21,7 @@ class Crawler:
         elif self.mode == 2:
             self.reddit()
 
-    def get_shadow_root(driver, element):
+    def get_shadow_root(self, driver, element):
         return driver.execute_script('return arguments[0].shadowRoot', element)
     
     def google_play(self):
@@ -56,11 +56,11 @@ class Crawler:
         print("Step 1: Information Required")
         name = input("Enter the name of the app: ")
         count = int(input("Enter the amount of reviews to scrape: "))
-        PendingDeprecationWarning = AppStore(country="us", app_name=name)
-        PendingDeprecationWarning.review(how_many=count)
+        data = AppStore(country="us", app_name=name)
+        data.review(how_many=count)
         res = []
-        bar = progressbar.ProgressBar(maxval=len(PendingDeprecationWarning.reviews)).start()
-        for i, r in enumerate(PendingDeprecationWarning.reviews):
+        bar = progressbar.ProgressBar(maxval=len(data.reviews)).start()
+        for i, r in enumerate(data.reviews):
             bar.update(i)
             if not r['rating'] <= 5 and r['rating'] >= 1:
                 continue 
@@ -106,20 +106,23 @@ class Crawler:
         for i, post in enumerate(posts):
             bar.update(i)
             driver.get(post)
-            mainContent = driver.find_element(By.ID, "main-content")
-            title = mainContent.find_element(By.TAG_NAME, 'shreddit-title').get_attribute('title')
             try:
-                readMore = mainContent.find_element(By.XPATH, '//*[contains(@id, "read-more-button")]')
-                if (readMore != None):
-                    readMore.click()
+                mainContent = driver.find_element(By.ID, "main-content")
+                title = mainContent.find_element(By.TAG_NAME, 'shreddit-title').get_attribute('title')
+                try:
+                    readMore = mainContent.find_element(By.XPATH, '//*[contains(@id, "read-more-button")]')
+                    if (readMore != None):
+                        readMore.click()
+                except:
+                    pass
+                content = mainContent.find_element(By.TAG_NAME, "shreddit-post")
+                paragraphs = content.find_element(By.CLASS_NAME, "md.text-14").find_elements(By.TAG_NAME, 'p')
             except:
-                pass
-            content = mainContent.find_element(By.TAG_NAME, "shreddit-post")
-            paragraphs = content.find_element(By.CLASS_NAME, "md.text-14").find_elements(By.TAG_NAME, 'p')
+                continue
             text = ""
             for p in paragraphs:
                 text += p.get_attribute('innerText') + "\n"
-            shadowRoot = self.get_shadow_root(content)
+            shadowRoot = self.get_shadow_root(driver, content)
             upvote = shadowRoot.find_element(By.CSS_SELECTOR, 'div.flex.flex-row.items-center.flex-nowrap.overflow-hidden.justify-start.h-2xl.mt-md.px-md.xs\:px-0 > span > span > span > faceplate-number').get_attribute('number')
             date = content.get_attribute('created-timestamp')
             results.append({
