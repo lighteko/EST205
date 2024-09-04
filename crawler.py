@@ -11,7 +11,6 @@ from app_store_scraper import AppStore
 class Crawler:
     def __init__(self, mode: int):
         self.mode = mode
-        pass
 
     def run(self):
         if self.mode == 0:
