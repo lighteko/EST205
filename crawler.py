@@ -7,6 +7,7 @@ import progressbar
 from google_play_scraper import app as Sort, reviews
 import pandas as pd
 from app_store_scraper import AppStore
+import datetime
 
 class Crawler:
     def __init__(self, mode: int):
@@ -42,8 +43,13 @@ class Crawler:
             if type(r['score']) != int or not r['score'] <= 5 and r['score'] >= 1:
                 continue 
             res.append({
-            'content': r['content'],
-            'score': r['score'],
+                'date': str(r['at']),
+                'version': r['reviewCreatedVersion'],
+                'score': r['score'],
+                'content': r['content'],
+                'upvote': r['thumbsUpCount'],
+                'reply': r['replyContent'],
+                'reply_date': str(r['repliedAt']),
             })
         bar.finish()
         print("Step 3: Saving Data ...")
