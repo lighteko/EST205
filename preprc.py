@@ -7,7 +7,6 @@ import re
 import pandas as pd
 import gspread as gs
 import progressbar
-import string
 import nltk
 # nltk.download()
 
