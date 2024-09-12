@@ -2,7 +2,6 @@ from spellchecker import SpellChecker
 from emos import Emos
 from nltk.corpus import wordnet, stopwords
 from nltk.stem import WordNetLemmatizer
-from nltk.stem.porter import PorterStemmer
 from collections import Counter
 import re
 import pandas as pd
@@ -24,7 +23,7 @@ class PreProcessor:
         self.model: pd.DataFrame = pd.DataFrame(
             self.worksheet.get_all_records())
         self.STOPWORDS = stopwords.words('english')
-        self.PUNCTUATIONS = string.punctuation
+        self.PUNCTUATIONS = "'`~!@#$%^&*()_-+={[]}\\|;:\",.<>/?"
         counter = Counter()
         bar = progressbar.ProgressBar(maxval=len(self.model)+10).start()
         for (_, row) in self.model.iterrows():
@@ -34,7 +33,6 @@ class PreProcessor:
         self.FREQWORDS = set([w for (w, _) in counter.most_common(10)])
         self.RAREWORDS = set(
             [w for (w, _) in counter.most_common()[:-10-1:-1]])
-        self.STEMMER = PorterStemmer().stem
         self.LEMMATIZER = WordNetLemmatizer().lemmatize
         self.WORDNET_MAP = {"N": wordnet.NOUN,
                             "V": wordnet.VERB, "R": wordnet.ADV, "J": wordnet.ADJ}
@@ -47,31 +45,29 @@ class PreProcessor:
 
     def run(self):
         print("Step 2: Preprocessing Data ...")
-        print("[1 / 13]", end=" ")
+        print("[1 / 11]", end=" ")
         self.lowering()
-        print("[2 / 13]", end=" ")
+        print("[2 / 11]", end=" ")
         self.remove_punctuation()
-        print("[3 / 13]", end=" ")
+        print("[3 / 11]", end=" ")
         self.remove_stop_words()
-        print("[4 / 13]", end=" ")
+        print("[4 / 11]", end=" ")
         self.remove_frequent_words()
-        print("[5 / 13]", end=" ")
+        print("[5 / 11]", end=" ")
         self.remove_rare_words()
-        print("[6 / 13]", end=" ")
-        self.stemming()
-        print("[7 / 13]", end=" ")
+        print("[6 / 11]", end=" ")
         self.lemmatizing()
-        print("[8 / 13]", end=" ")
+        print("[7 / 11]", end=" ")
+        print(self.model[:3])
         self.convert_emojis()
-        print("[9 / 13]", end=" ")
+        print("[8 / 11]", end=" ")
         self.convert_emoticons()
-        print("[10 / 13]", end=" ")
+        print("[9 / 11]", end=" ")
         self.remove_urls()
-        print("[11 / 13]", end=" ")
+        print("[10 / 11]", end=" ")
         self.remove_html_tags()
-        print("[12 / 13]", end=" ")
+        print("[11 / 11]", end=" ")
         self.correct_spellings()
-        print("[13 / 13]", end=" ")
         self.save()
 
     def lowering(self):
@@ -101,12 +97,17 @@ class PreProcessor:
         temp_model = []
         for (_, row) in self.model.iterrows():
             b.update(_)
+            content_list = [c for c in row["content"]]
+            for i, c in enumerate(content_list):
+                if c in self.PUNCTUATIONS:
+                    content_list[i] = ""
+            content = "".join(content_list)
             temp = {
                 "id": row['id'],
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": row['content'].translate(str.maketrans('', '', self.PUNCTUATIONS)),
+                "content": content,
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -132,6 +133,7 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
+        self.model = pd.DataFrame(temp_model)
         b.finish()
 
     def remove_frequent_words(self):
@@ -151,6 +153,7 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
+        self.model = pd.DataFrame(temp_model)
         b.finish()
 
     def remove_rare_words(self):
@@ -170,27 +173,8 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-        b.finish()
-
-    def stemming(self):
-        print("Stemming words ...")
-        b = progressbar.ProgressBar(maxval=len(self.model)).start()
-        temp_model = []
-        for (_, row) in self.model.iterrows():
-            b.update(_)
-            temp = {
-                "id": row['id'],
-                "date": row['date'],
-                "version": row['version'],
-                "score": row['score'],
-                "content": ' '.join([self.STEMMER(word) for word in row['content'].split()]),
-                "upvote": row['upvote'],
-                "reply": row['reply'],
-                "reply_date": row['reply_date']
-            }
-            temp_model.append(temp)
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def lemmatizing(self):
         print("Lemmatizing words ...")
@@ -204,14 +188,14 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": ' '.join([self.LEMMATIZER(word, self.WORDNET_MAP.get(pos[0], wordnet.NOUN)) for word, pos in pos_tagged]),
+                "content": ' '.join([self.LEMMATIZER(word, self.WORDNET_MAP.get(pos[0], wordnet.NOUN)) for (word, pos) in pos_tagged]),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def convert_emojis(self):
 
@@ -235,8 +219,8 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def convert_emoticons(self):
         print("Converting emoticons ...")
@@ -259,8 +243,8 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def remove_urls(self):
         url_pattern = re.compile(r'https?://\S+|www\.\S+')
@@ -280,8 +264,8 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def remove_html_tags(self):
         html_pattern = re.compile('<.*?>')
@@ -301,8 +285,8 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def correct_spellings(self):
         print("Correcting spellings ...")
@@ -331,8 +315,8 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def save(self):
         print("Step 3: Saving Preprocessed Data ...")
