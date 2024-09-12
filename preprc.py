@@ -39,38 +39,27 @@ class PreProcessor:
         self.UNICODE_EMO = Emos.UNICODE_EMO
         self.CORRECTOR = SpellChecker().correction
         self.UNKNOWN = SpellChecker().unknown
+        self.counter = 1
         bar.update(len(self.model)+10)
         bar.finish()
 
     def run(self):
         print("Step 2: Preprocessing Data ...")
-        print("[1 / 11]", end=" ")
         self.lowering()
-        print("[2 / 11]", end=" ")
         self.remove_punctuation()
-        print("[3 / 11]", end=" ")
         self.remove_stop_words()
-        print("[4 / 11]", end=" ")
         self.remove_frequent_words()
-        print("[5 / 11]", end=" ")
         self.remove_rare_words()
-        print("[6 / 11]", end=" ")
         self.lemmatizing()
-        print("[7 / 11]", end=" ")
-        print(self.model[:3])
         self.convert_emojis()
-        print("[8 / 11]", end=" ")
         self.convert_emoticons()
-        print("[9 / 11]", end=" ")
         self.remove_urls()
-        print("[10 / 11]", end=" ")
         self.remove_html_tags()
-        print("[11 / 11]", end=" ")
         self.correct_spellings()
         self.save()
 
     def lowering(self):
-        print("Lowering all characters ...")
+        print(f"[{self.counter} / 11] Lowering all characters ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -88,11 +77,12 @@ class PreProcessor:
             }
             temp_model.append(temp)
             self.model.update
-        b.finish()
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
+        b.finish()
 
     def remove_punctuation(self):
-        print("Removing punctuations ...")
+        print(f"[{self.counter} / 11] Removing punctuations ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -115,10 +105,11 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def remove_stop_words(self):
-        print("Removing stop words ...")
+        print(f"[{self.counter} / 11] Removing stop words ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -136,10 +127,11 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def remove_frequent_words(self):
-        print("Removing frequent words ...")
+        print(f"[{self.counter} / 11] Removing frequent words ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -157,10 +149,11 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def remove_rare_words(self):
-        print("Removing rare words ...")
+        print(f"[{self.counter} / 11] Removing rare words ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -178,10 +171,11 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def lemmatizing(self):
-        print("Lemmatizing words ...")
+        print(f"[{self.counter} / 11] Lemmatizing words ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -200,11 +194,12 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def convert_emojis(self):
 
-        print("Converting emojis ...")
+        print(f"[{self.counter} / 11] Converting emojis ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -226,10 +221,11 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def convert_emoticons(self):
-        print("Converting emoticons ...")
+        print(f"[{self.counter} / 11] Converting emoticons ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -251,11 +247,12 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def remove_urls(self):
         url_pattern = re.compile(r'https?://\S+|www\.\S+')
-        print("Removing URLs ...")
+        print(f"[{self.counter} / 11] Removing URLs ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -273,11 +270,12 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def remove_html_tags(self):
         html_pattern = re.compile('<.*?>')
-        print("Removing HTML tags ...")
+        print(f"[{self.counter} / 11] Removing HTML tags ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
@@ -295,10 +293,11 @@ class PreProcessor:
             }
             temp_model.append(temp)
         self.model = pd.DataFrame(temp_model)
+        self.counter += 1
         b.finish()
 
     def correct_spellings(self):
-        print("Correcting spellings ...")
+        print(f"[{self.counter} / 11] Correcting spellings ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
