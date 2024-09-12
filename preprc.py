@@ -80,7 +80,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": row['content'].lower(),
+                "content": row['content'],
+                "preprocessed-content": row['content'].lower(),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -96,7 +97,7 @@ class PreProcessor:
         temp_model = []
         for (_, row) in self.model.iterrows():
             b.update(_)
-            content_list = [c for c in row["content"]]
+            content_list = [c for c in row["preprocessed-content"]]
             for i, c in enumerate(content_list):
                 if c in self.PUNCTUATIONS:
                     content_list[i] = ""
@@ -106,7 +107,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": content,
+                "content": row["content"],
+                "preprocessed-content": content,
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -126,7 +128,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": ' '.join([word for word in row['content'].split() if word not in self.STOPWORDS]),
+                "content": row["content"],
+                "preprocessed-content": ' '.join([word for word in row['preprocessed-content'].split() if word not in self.STOPWORDS]),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -146,7 +149,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": ' '.join([word for word in row['content'].split() if word not in self.FREQWORDS]),
+                "content": row["content"],
+                "preprocessed-content": ' '.join([word for word in row['preprocessed-content'].split() if word not in self.FREQWORDS]),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -166,7 +170,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": ' '.join([word for word in row['content'].split() if word not in self.RAREWORDS]),
+                "content": row['content'],
+                "preprocessed-content": ' '.join([word for word in row['preprocessed-content'].split() if word not in self.RAREWORDS]),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -181,13 +186,14 @@ class PreProcessor:
         temp_model = []
         for (_, row) in self.model.iterrows():
             b.update(_)
-            pos_tagged = nltk.pos_tag(row['content'].split())
+            pos_tagged = nltk.pos_tag(row['preprocessed-content'].split())
             temp = {
                 "id": row['id'],
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": ' '.join([self.LEMMATIZER(word, self.WORDNET_MAP.get(pos[0], wordnet.NOUN)) for (word, pos) in pos_tagged]),
+                "content": row['content'],
+                "preprocessed-content": ' '.join([self.LEMMATIZER(word, self.WORDNET_MAP.get(pos[0], wordnet.NOUN)) for (word, pos) in pos_tagged]),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -202,7 +208,7 @@ class PreProcessor:
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
-            content = row['content']
+            content = row['preprocessed-content']
             for emo in self.UNICODE_EMO:
                 content = re.sub(
                     r'('+emo+')', "_".join(self.UNICODE_EMO[emo].replace(",", "").replace(":", "").split()), content)
@@ -212,7 +218,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": content,
+                "content": row['content'],
+                "preprocessed-content": content,
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -226,7 +233,7 @@ class PreProcessor:
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
-            content = row['content']
+            content = row['preprocessed-content']
             for emot in self.EMOTICONS:
                 content = re.sub(
                     u'(' + emot + ')', "_".join(self.EMOTICONS[emot].replace(",", "").split()), content)
@@ -236,7 +243,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": content,
+                "content": row['content'],
+                "preprocessed-content": content,
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -257,7 +265,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": url_pattern.sub(r'', row['content']),
+                "content": row["content"],
+                "preprocessed-content": url_pattern.sub(r'', row['content']),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -278,7 +287,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": html_pattern.sub(r'', row['content']),
+                "content": row['content'],
+                "preprocessed-content": html_pattern.sub(r'', row['preprocessed-content']),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -293,7 +303,7 @@ class PreProcessor:
         temp_model = []
         for (_, row) in self.model.iterrows():
             b.update(_)
-            content = row['content']
+            content = row['preprocessed-content']
             corrected_text = []
             misspelled_words = self.UNKNOWN(content.split())
             for word in content.split():
@@ -308,7 +318,8 @@ class PreProcessor:
                 "date": row['date'],
                 "version": row['version'],
                 "score": row['score'],
-                "content": ' '.join(corrected_text),
+                "content": row['content'],
+                "preprocessed-content": ' '.join(corrected_text),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -319,10 +330,8 @@ class PreProcessor:
 
     def save(self):
         print("Step 3: Saving Preprocessed Data ...")
-        self.sheet.add_worksheet(title=f"Preprocessed_{self.file_name}", rows=self.model.shape[0] + 1, cols=self.model.shape[1])
-        worksheet = self.sheet.worksheet(f"Preprocessed_{self.file_name}")
-        worksheet.update([self.model.columns.values.tolist()
-                          ] + self.model.values.tolist())
+        self.worksheet.update([self.model.columns.values.tolist()
+                               ] + self.model.values.tolist())
         print("Data saved successfully.")
         print(">>> Exiting Preprocessor ...")
         print("DONE")
