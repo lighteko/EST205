@@ -46,13 +46,13 @@ class PreProcessor:
     def run(self):
         print("Step 2: Preprocessing Data ...")
         self.lowering()
+        self.remove_emojis()
+        self.remove_emoticons()
         self.remove_punctuation()
         self.remove_stop_words()
         self.remove_frequent_words()
         self.remove_rare_words()
         self.lemmatizing()
-        self.convert_emojis()
-        self.convert_emoticons()
         self.remove_urls()
         self.remove_html_tags()
         self.correct_spellings()
@@ -197,16 +197,20 @@ class PreProcessor:
         self.counter += 1
         b.finish()
 
-    def convert_emojis(self):
-
-        print(f"[{self.counter} / 11] Converting emojis ...")
+    def remove_emojis(self):
+        print(f"[{self.counter} / 11] Removing emojis ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
-            content = row['preprocessed-content']
-            for emo in self.UNICODE_EMO:
-                content = re.sub(
-                    r'('+emo+')', "_".join(self.UNICODE_EMO[emo].replace(",", "").replace(":", "").split()), content)
+            emoji_pattern = re.compile("["
+                           u"\U0001F600-\U0001F64F"  # emoticons
+                           u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                           u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                           u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                           u"\U00002702-\U000027B0"
+                           u"\U000024C2-\U0001F251"
+                           "]+", flags=re.UNICODE)
+            content = emoji_pattern.sub(r'', row['preprocessed-content'])
             b.update(_)
             temp = {
                 "id": row['id'],
@@ -224,15 +228,13 @@ class PreProcessor:
         self.counter += 1
         b.finish()
 
-    def convert_emoticons(self):
-        print(f"[{self.counter} / 11] Converting emoticons ...")
+    def remove_emoticons(self):
+        print(f"[{self.counter} / 11] Removing emoticons ...")
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
         temp_model = []
         for (_, row) in self.model.iterrows():
-            content = row['preprocessed-content']
-            for emot in self.EMOTICONS:
-                content = re.sub(
-                    u'(' + emot + ')', "_".join(self.EMOTICONS[emot].replace(",", "").split()), content)
+            emoticon_pattern = re.compile(u'(' + u'|'.join(k for k in self.EMOTICONS) + u')')
+            content = emoticon_pattern.sub(r'', row['preprocessed-content'])
             b.update(_)
             temp = {
                 "id": row['id'],
@@ -263,7 +265,7 @@ class PreProcessor:
                 "version": row['version'],
                 "score": row['score'],
                 "content": row["content"],
-                "preprocessed-content": url_pattern.sub(r'', row['content']),
+                "preprocessed-content": url_pattern.sub(r'', row['preprocessed-content']),
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
