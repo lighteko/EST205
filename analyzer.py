@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from api import EmotionsAPI as emAPI
 
+
 class Analyzer:
     def __init__(self):
         print("Step 0: Checking Credentials ...")
@@ -23,8 +24,25 @@ class Analyzer:
         pass
 
     def anlz_emotion(self):
-        
-        pass
+        b = progressbar.ProgressBar(maxval=len(self.model)).start()
+        temp_model = []
+        for (_, row) in self.model.iterrows():
+            b.update(_)
+            temp = {
+                "id": row['id'],
+                "date": row['date'],
+                "version": row['version'],
+                "score": row['score'],
+                "content": row['content'],
+                "preprocessed-content": row['preprocessed-content'],
+                "emotion": self.emotions(row['preprocessed-content']),
+                "upvote": row['upvote'],
+                "reply": row['reply'],
+                "reply_date": row['reply_date']
+            }
+            temp_model.append(temp)
+        self.model = pd.DataFrame(temp_model)
+        b.finish()
 
     def anlz_word_frequency(self, score: int):
         pass
@@ -32,3 +50,10 @@ class Analyzer:
     def anlz_monthly_rating(self):
         pass
 
+    def save(self):
+        print("Step 3: Saving Preprocessed Data ...")
+        self.worksheet.update([self.model.columns.values.tolist()
+                               ] + self.model.values.tolist())
+        print("Data saved successfully.")
+        print(">>> Exiting Preprocessor ...")
+        print("DONE")

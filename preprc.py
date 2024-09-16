@@ -76,7 +76,6 @@ class PreProcessor:
                 "reply_date": row['reply_date']
             }
             temp_model.append(temp)
-            self.model.update
         self.model = pd.DataFrame(temp_model)
         self.counter += 1
         b.finish()
