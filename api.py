@@ -1,6 +1,5 @@
 import requests
 import os
-import json
 
 class EmotionsAPI:
     def __init__(self):
