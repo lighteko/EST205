@@ -24,7 +24,7 @@ class Analyzer:
         self.UPVOTEDS = None
     
     def run(self):
-        self.anlz_emotion()
+        # self.anlz_emotion()
         self.anlz_word_frequency()
         self.anlz_monthly_rating()
         self.anlz_rating_by_version()
@@ -44,7 +44,7 @@ class Analyzer:
                 "score": row['score'],
                 "content": row['content'],
                 "preprocessed-content": row['preprocessed-content'],
-                "emotion": self.emotions(row['content']),
+                "emotion": f"{self.emotions(row['content'])}",
                 "upvote": row['upvote'],
                 "reply": row['reply'],
                 "reply_date": row['reply_date']
@@ -58,21 +58,19 @@ class Analyzer:
         print(f"[{self.CUR_TASK}/{self.MAX_TASKS}] Analyzing Word Frequency ...")
         five, four, three, two, one = Counter(), Counter(), Counter(), Counter(), Counter()
         b = progressbar.ProgressBar(maxval=len(self.model)).start()
+
         for (_, row) in self.model.iterrows():
-            if (row['score'] == 5):
-                for word in row['preprocessed-content'].split():
+            preprc_content = str(row['preprocessed-content']).split()
+            for word in preprc_content:
+                if (row['score'] == 5):
                     five[word] += 1
-            elif (row['score'] == 4):
-                for word in row['preprocessed-content'].split():
+                elif (row['score'] == 4):
                     four[word] += 1
-            elif (row['score'] == 3):
-                for word in row['preprocessed-content'].split():
+                elif (row['score'] == 3):
                     three[word] += 1
-            elif (row['score'] == 2):
-                for word in row['preprocessed-content'].split():
+                elif (row['score'] == 2):
                     two[word] += 1
-            else:
-                for word in row['preprocessed-content'].split():
+                else:
                     one[word] += 1
             b.update(_)
         self.WORD_FREQ = [five, four, three, two, one]
@@ -121,14 +119,14 @@ class Analyzer:
 
     def save(self) -> None:
         print("Step 3: Saving Preprocessed Data ...")
-        self.worksheet.update([self.model.columns.values.tolist()
-                               ] + self.model.values.tolist())
+        # self.worksheet.update([self.model.columns.values.tolist()
+        #                        ] + self.model.values.tolist())
         pd.DataFrame(self.MONTHLY_RATING.items(), columns=[
-                     "Month", "Rating"]).to_csv(f"{self.file_name.lower()}_monthly_rating.csv")
+                     "Month", "Rating"]).to_csv(f"./res/analysis/{self.file_name.lower()}_monthly_rating.csv")
         pd.DataFrame(self.VERSION_RATING.items(), columns=[
-                     "Version", "Rating"]).to_csv(f"{self.file_name.lower()}_version_rating.csv")
-        pd.DataFrame(self.WORD_FREQ).to_csv(f"{self.file_name.lower()}_word_frequency.csv")
-        pd.DataFrame(self.UPVOTEDS).to_csv(f"{self.file_name.lower()}_top5_upvoted_reviews.csv")
+                     "Version", "Rating"]).to_csv(f"./res/analysis/{self.file_name.lower()}_version_rating.csv")
+        pd.DataFrame(self.WORD_FREQ).to_csv(f"./res/analysis/{self.file_name.lower()}_word_frequency.csv")
+        pd.DataFrame(self.UPVOTEDS).to_csv(f"./res/analysis/{self.file_name.lower()}_top5_upvoted_reviews.csv")
         print("Data saved successfully.")
         print(">>> Exiting Preprocessor ...")
         print("DONE")
